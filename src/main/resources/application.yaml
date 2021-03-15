@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/huobi?serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull&autoReconnect=true&useSSL=false&failOverReadOnly=false
+    username: root
+    password: chenchao
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
