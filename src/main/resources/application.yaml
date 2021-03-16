@@ -19,5 +19,5 @@ spring:
     time-zone: GMT+8
 mess:
   from: ${spring.mail.username}
-  to: ${spring.mail.username}
+  to: ${spring.mail.username},gleader002@126.com
 

@@ -27,21 +27,24 @@ public class AsyncService {
 
     @Async
     public void getOverHighPrice(List<CoinPriceOrder> coinPriceOrders, CountDownLatch latch, Vector<CoinPriceOrder> vector) {
-        List<CoinPriceOrder> orders = new ArrayList<>();
+        log.info(Thread.currentThread().getName() + " 任务开始");
         for (CoinPriceOrder order : coinPriceOrders) {
             try {
                 Map<String, Map<String, Double>> price = client.getPrice(order.getCoinId(), Currency.USD);
                 BigDecimal newPrice = new BigDecimal(price.get("bitcoin").get("usd"));
                 if (newPrice.compareTo(order.getPrice()) > 0) {
                     order.setPrice(newPrice);
-                    orders.add(order);
+                    vector.add(order);
                     coinPriceOrderRepository.save(order);
                     log.info(order.toString());
                 }
+            } catch (Exception e) {
+                log.error(e.getMessage());
             } finally {
                 continue;
             }
         }
         latch.countDown();
+        log.info(Thread.currentThread().getName() + " 任务结束");
     }
 }
