@@ -12,7 +12,7 @@ spring:
   mail:
     host: smtp.163.com
     username: 13065189401@163.com
-    password: ZZDVXBQVPGPHEINN
+    password: CHEN4419
     port: 25
   jackson:
     date-format: java.text.SimpleDateFormat

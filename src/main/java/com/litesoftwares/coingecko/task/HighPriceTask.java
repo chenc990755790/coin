@@ -39,7 +39,7 @@ public class HighPriceTask {
         countDownLatch = new CountDownLatch(corePoolSize);
     }
 
-    @Scheduled(cron = "0 20 0/1 * * ?")
+    @Scheduled(cron = "0 15 0/1 * * ?")
     public void getCurrentPrice() throws InterruptedException {
         highPriceList.clear();
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
@@ -52,6 +52,7 @@ public class HighPriceTask {
             asyncService.getOverHighPrice(all.subList(i * size, (i + 1) * size), countDownLatch, highPriceList);
         }
         countDownLatch.await(30, TimeUnit.MINUTES);
-        mailService.sendMail(highPriceList);
+        if (highPriceList.size() > 0)
+            mailService.sendMail(highPriceList);
     }
 }
