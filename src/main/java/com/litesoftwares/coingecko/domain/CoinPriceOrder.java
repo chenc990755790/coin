@@ -10,10 +10,12 @@ import java.math.BigDecimal;
 @Table(name = "coin_price_order")
 public class CoinPriceOrder {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
+    @Column(length = 12)
     private String symbol;
-
+    @Column(length = 12, scale = 6, precision = 12)
     private BigDecimal price;
+    @Column(unique = true, length = 20)
+    private String coinId;
 }
