@@ -2,6 +2,7 @@ package com.litesoftwares.coingecko.task;
 
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -14,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@Slf4j
 public class HighPriceTask {
 
     @Autowired
@@ -39,7 +41,7 @@ public class HighPriceTask {
         countDownLatch = new CountDownLatch(corePoolSize);
     }
 
-    @Scheduled(cron = "0 15 0/1 * * ?")
+    @Scheduled(cron = "0 30 0/1 * * ?")
     public void getCurrentPrice() throws InterruptedException {
         highPriceList.clear();
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
@@ -51,8 +53,20 @@ public class HighPriceTask {
             }
             asyncService.getOverHighPrice(all.subList(i * size, (i + 1) * size), countDownLatch, highPriceList);
         }
-        countDownLatch.await(30, TimeUnit.MINUTES);
-        if (highPriceList.size() > 0)
-            mailService.sendMail(highPriceList);
+        countDownLatch.await(3, TimeUnit.MINUTES);
+        log.info("所有任务结束");
+        if (highPriceList.size() > 0) {
+            highPriceList.sort((a, b) -> (int) (a.getMarkerOrder() - b.getMarkerOrder()));
+            mailService.sendMail(buildListString(highPriceList));
+            log.info(highPriceList.toString());
+        }
+    }
+
+    private String buildListString(Vector<CoinPriceOrder> highPriceList) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (CoinPriceOrder order : highPriceList) {
+            stringBuilder.append(order.toString()).append("\n");
+        }
+        return stringBuilder.toString();
     }
 }

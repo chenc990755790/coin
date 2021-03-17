@@ -9,15 +9,41 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-  mail:
-    host: smtp.163.com
-    username: 13065189401@163.com
-    password: CHEN4419
-    port: 25
+#  mail:
+#    host: smtp.163.com
+#    username: 13065189401@163.com
+#    password: CHEN4419
+#    port: 25
   jackson:
     date-format: java.text.SimpleDateFormat
     time-zone: GMT+8
+  mail:
+    host: smtp.163.com
+    password: KBBVNQVCPUTZYNTO
+    username: 13065189401@163.com
+    port: 25
+  #    host: smtp.gmail.com
+#    username: shaoshuai2028@gmail.com
+#    password: shaoSHAI123
+#    protocol: smtp
+#    default-encoding: utf-8
+#    from: shaoshuai2028@gmail.com
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          port: 465
+#          starttls:
+#            enable: true
+#            required: true
+#          ssl:
+#            enable: true
+#        dispaly:
+#          sendmail: shaoshuai2028@gmail.com
+#          sendname: sendname
+
 mess:
   from: ${spring.mail.username}
   to: ${spring.mail.username},gleader002@126.com
+
 

@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -27,12 +28,14 @@ public class AsyncService {
     @Async
     public void getOverHighPrice(List<CoinPriceOrder> coinPriceOrders, CountDownLatch latch, Vector<CoinPriceOrder> vector) {
         log.info(Thread.currentThread().getName() + " 任务开始");
+        Date currDate = new Date();
         for (CoinPriceOrder order : coinPriceOrders) {
             try {
                 Map<String, Map<String, Double>> price = client.getPrice(order.getCoinId(), Currency.USD);
-                BigDecimal newPrice = new BigDecimal(price.get("bitcoin").get("usd"));
+                BigDecimal newPrice = new BigDecimal(price.get(order.getCoinId()).get(Currency.USD));
                 if (newPrice.compareTo(order.getPrice()) > 0) {
                     order.setPrice(newPrice);
+                    order.setUpdateTime(currDate);
                     vector.add(order);
                     coinPriceOrderRepository.save(order);
                     log.info(order.toString());

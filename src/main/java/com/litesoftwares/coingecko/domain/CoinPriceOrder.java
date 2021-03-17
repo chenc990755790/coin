@@ -4,18 +4,23 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @Entity
-@Table(name = "coin_price_order")
+@Table(name = "simple_coin_price_order")
 public class CoinPriceOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(length = 12)
+    @Column(length = 50)
     private String symbol;
-    @Column(length = 12, scale = 6, precision = 12)
+    @Column(length = 18, scale = 6, precision = 18)
     private BigDecimal price;
-    @Column(unique = true, length = 20)
+    @Column(unique = true, length = 50)
     private String coinId;
+    @Column(length = 6)
+    private long markerOrder;
+
+    private Date updateTime;
 }

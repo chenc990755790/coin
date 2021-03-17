@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class MailService<T> {
+public class MailService {
 
     @Autowired
     private MailSender mailSender;
@@ -20,11 +20,12 @@ public class MailService<T> {
     private SimpleMailMessage mailMessage;
 
     @Async
-    public void sendMail(T text) {
+    public void sendMail(String text) {
         try {
             log.info("发送邮件");
-            mailMessage.setText(text.toString());
+            mailMessage.setText(text);
             mailSender.send(mailMessage);
+            log.info("邮件发送成功");
         } catch (MailException e) {
             log.error("发送失败", e);
         }
