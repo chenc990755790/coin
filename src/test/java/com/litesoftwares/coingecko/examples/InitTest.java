@@ -13,8 +13,10 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ public class InitTest {
     private int threadNum = 5;
     @Autowired
     private MailService mailService;
+
     @Test
     public void initHighPrice() throws InterruptedException {
         Set<String> collect = coinPriceOrderRepository.findAll().parallelStream().map(i -> i.getCoinId()).collect(Collectors.toSet());
@@ -52,19 +55,18 @@ public class InitTest {
 
     @Test
     public void initHighPrice2() {
-//        Set<String> collect = coinPriceOrderRepository.findAll().parallelStream().map(i -> i.getSymbol()).collect(Collectors.toSet());
+        List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
-        List<CoinList> coinList = client.getCoinList();
-        System.out.println("总条数； " + coinList.size());
-        List<String> arrayList = new ArrayList<String>();
-        Map<String, List<CoinList>> collect = coinList.stream().collect(Collectors.groupingBy(CoinList::getSymbol));
-        for (String list : collect.keySet()) {
-            if (collect.get(list).size() > 1) {
-                arrayList.add(list);
-                log.info(collect.get(list).toString());
+        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 200, 1, false, "");
+        int j=0;
+        for (CoinPriceOrder order : all) {
+            coinList = coinList.stream().filter(i -> i.getId().equals(order.getCoinId())).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(coinList)){
+                j++;
+
             }
         }
-        System.out.println(arrayList.size());
+        System.out.println(j);
     }
 
     class MyThread extends Thread {
@@ -80,23 +82,25 @@ public class InitTest {
 
         @Override
         public void run() {
-            CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z");
+//            CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
             for (CoinMarkets list : coinList) {
                 if (collect.contains(list.getId())) continue;
                 try {
-                    MarketChart usd = client.getCoinMarketChartById(list.getId(), "usd", 200);
-                    BigDecimal high = new BigDecimal(usd.getPrices().get(0).get(1));
-                    BigDecimal newPrice;
-                    for (List<String> str : usd.getPrices()) {
-                        if (high.compareTo(newPrice = new BigDecimal(str.get(1))) < 0) {
-                            high = newPrice;
-                        }
-                    }
-                    if (collect.contains(list.getSymbol())) continue;
+//                    MarketChart usd = client.getCoinMarketChartById(list.getId(), "usd", 200);
+//                    BigDecimal high = new BigDecimal(usd.getPrices().get(0).get(1));
+//                    BigDecimal newPrice;
+//                    for (List<String> str : usd.getPrices()) {
+//                        if (high.compareTo(newPrice = new BigDecimal(str.get(1))) < 0) {
+//                            high = newPrice;
+//                        }
+//                    }
+//                    if (collect.contains(list.getSymbol())) continue;
                     CoinPriceOrder coinPriceOrder = new CoinPriceOrder();
                     coinPriceOrder.setSymbol(list.getSymbol());
-                    coinPriceOrder.setPrice(high);
+                    coinPriceOrder.setPrice(new BigDecimal(list.getAth()));
                     coinPriceOrder.setCoinId(list.getId());
+                    coinPriceOrder.setUpdateTime(sdf.parse(list.getAthDate().replace("Z", " UTC")));
                     coinPriceOrder.setMarkerOrder(list.getMarketCapRank());
                     coinPriceOrderRepository.save(coinPriceOrder);
                     collect.add(list.getId());
@@ -114,15 +118,16 @@ public class InitTest {
             log.info("子线程执行完毕" + Thread.currentThread().getName());
         }
     }
+
     @Test
-    public void test(){
+    public void test() {
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
         Map<String, Map<String, Double>> price = client.getPrice("bitcoin", "usd");
-        System.out.println(price.get("bitcoin").get("usd")+price.get("bitcoin").get("usd").getClass().getTypeName());
+        System.out.println(price.get("bitcoin").get("usd") + price.get("bitcoin").get("usd").getClass().getTypeName());
     }
 
     @Test
-    public void testmail(){
+    public void testmail() {
         mailService.sendMail("测试邮箱");
     }
 }

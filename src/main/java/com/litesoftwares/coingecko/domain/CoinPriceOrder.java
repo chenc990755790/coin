@@ -23,4 +23,7 @@ public class CoinPriceOrder {
     private long markerOrder;
 
     private Date updateTime;
+    @Transient
+    private BigDecimal oldPrice;
+
 }

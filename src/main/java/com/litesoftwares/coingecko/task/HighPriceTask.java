@@ -1,14 +1,20 @@
 package com.litesoftwares.coingecko.task;
 
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
+import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
@@ -41,7 +47,7 @@ public class HighPriceTask {
         countDownLatch = new CountDownLatch(corePoolSize);
     }
 
-    @Scheduled(cron = "0 30 0/1 * * ?")
+    @Scheduled(cron = "0 41 0/1 * * ?")
     public void getCurrentPrice() throws InterruptedException {
         highPriceList.clear();
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
@@ -57,16 +63,41 @@ public class HighPriceTask {
         log.info("所有任务结束");
         if (highPriceList.size() > 0) {
             highPriceList.sort((a, b) -> (int) (a.getMarkerOrder() - b.getMarkerOrder()));
-            mailService.sendMail(buildListString(highPriceList));
-            log.info(highPriceList.toString());
+            List<PriceOrder> orders = buildNewOrder(highPriceList);
+            mailService.sendMail(buildListString(orders));
+            log.info(orders.toString());
+            updateOrderList(highPriceList);
         }
     }
 
-    private String buildListString(Vector<CoinPriceOrder> highPriceList) {
+    private void updateOrderList(List<CoinPriceOrder> coinPriceOrders) {
+        Date currDate = new Date();
+        for (CoinPriceOrder order : coinPriceOrders) {
+            order.setUpdateTime(currDate);
+            coinPriceOrderRepository.save(order);
+        }
+    }
+
+    private String buildListString(List<PriceOrder> highPriceList) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (CoinPriceOrder order : highPriceList) {
+        for (PriceOrder order : highPriceList) {
             stringBuilder.append(order.toString()).append("\n");
         }
         return stringBuilder.toString();
+    }
+
+    private List<PriceOrder> buildNewOrder(List<CoinPriceOrder> coinPriceOrders) {
+        List<PriceOrder> orders = new ArrayList<>();
+        for (CoinPriceOrder order : coinPriceOrders) {
+            PriceOrder priceOrder = new PriceOrder();
+            BeanUtils.copyProperties(order, priceOrder);
+            BigDecimal rate = priceOrder.getPrice().subtract(priceOrder.getOldPrice())
+                    .multiply(priceOrder.getOldPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+            priceOrder.setIncreaseRate(rate);
+            priceOrder.setOldPriceDate(order.getUpdateTime());
+            priceOrder.setCoingeckUrl("https://www.coingecko.com/zh/%E6%95%B0%E5%AD%97%E8%B4%A7%E5%B8%81/" + order.getCoinId());
+            orders.add(priceOrder);
+        }
+        return orders;
     }
 }
