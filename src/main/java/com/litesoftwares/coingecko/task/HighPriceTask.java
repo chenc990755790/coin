@@ -66,10 +66,10 @@ public class HighPriceTask {
             List<PriceOrder> orders = buildNewOrder(highPriceList);
             orders = orders.parallelStream().filter(i -> i.getInterval() > 0L).collect(Collectors.toList());
             orders.sort((a, b) -> (int) (a.getMarkerOrder() - b.getMarkerOrder()));
-            mailService.sendMail(buildListString(orders));
-            log.info(orders.toString());
             if (orders.size() > 0) {
                 highPriceList.parallelStream().forEach(i -> coinPriceOrderRepository.save(i));
+                mailService.sendMail(buildListString(orders));
+                log.info(orders.toString());
             }
         }
     }
