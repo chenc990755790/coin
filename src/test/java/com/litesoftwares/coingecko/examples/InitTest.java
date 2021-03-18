@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class InitTest {
     @Autowired
     private CoinPriceOrderRepository coinPriceOrderRepository;
-    private int threadNum = 5;
+    private int threadNum = 6;
     @Autowired
     private MailService mailService;
 
@@ -38,7 +38,7 @@ public class InitTest {
     public void initHighPrice() throws InterruptedException {
         Set<String> collect = coinPriceOrderRepository.findAll().parallelStream().map(i -> i.getCoinId()).collect(Collectors.toSet());
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
-        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 200, 1, false, "");
+        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 600, 1, false, "");
 //        List<CoinList> coinList = client.getCoinList();
         System.out.println("总条数； " + coinList.size());
         int size = coinList.size() / threadNum;
@@ -83,23 +83,13 @@ public class InitTest {
         @Override
         public void run() {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z");
-//            CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
             for (CoinMarkets list : coinList) {
                 if (collect.contains(list.getId())) continue;
                 try {
-//                    MarketChart usd = client.getCoinMarketChartById(list.getId(), "usd", 200);
-//                    BigDecimal high = new BigDecimal(usd.getPrices().get(0).get(1));
-//                    BigDecimal newPrice;
-//                    for (List<String> str : usd.getPrices()) {
-//                        if (high.compareTo(newPrice = new BigDecimal(str.get(1))) < 0) {
-//                            high = newPrice;
-//                        }
-//                    }
-//                    if (collect.contains(list.getSymbol())) continue;
                     CoinPriceOrder coinPriceOrder = new CoinPriceOrder();
                     coinPriceOrder.setSymbol(list.getSymbol());
-                    coinPriceOrder.setPrice(new BigDecimal(list.getAth()));
                     coinPriceOrder.setCoinId(list.getId());
+                    coinPriceOrder.setPrice(new BigDecimal(list.getAth()));
                     coinPriceOrder.setUpdateTime(sdf.parse(list.getAthDate().replace("Z", " UTC")));
                     coinPriceOrder.setMarkerOrder(list.getMarketCapRank());
                     coinPriceOrderRepository.save(coinPriceOrder);

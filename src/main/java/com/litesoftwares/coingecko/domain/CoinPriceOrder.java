@@ -25,5 +25,7 @@ public class CoinPriceOrder {
     private Date updateTime;
     @Transient
     private BigDecimal oldPrice;
+    @Transient
+    private Date oldPriceDate;
 
 }

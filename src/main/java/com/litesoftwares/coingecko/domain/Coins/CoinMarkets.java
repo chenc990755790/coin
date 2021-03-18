@@ -42,7 +42,7 @@ public class CoinMarkets {
     @JsonProperty("total_supply")
     private long totalSupply;
     @JsonProperty("ath")
-    private long ath;
+    private double ath;
     @JsonProperty("ath_change_percentage")
     private double athChangePercentage;
     @JsonProperty("ath_date")
