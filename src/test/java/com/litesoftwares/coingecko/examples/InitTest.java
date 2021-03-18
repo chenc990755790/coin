@@ -3,7 +3,9 @@ package com.litesoftwares.coingecko.examples;
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
-import com.litesoftwares.coingecko.domain.Coins.*;
+import com.litesoftwares.coingecko.domain.Coins.CoinMarkets;
+import com.litesoftwares.coingecko.domain.Exchanges.ExchangesTickersById;
+import com.litesoftwares.coingecko.domain.Shared.Ticker;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
 import com.litesoftwares.coingecko.task.MailService;
@@ -38,7 +40,7 @@ public class InitTest {
     public void initHighPrice() throws InterruptedException {
         Set<String> collect = coinPriceOrderRepository.findAll().parallelStream().map(i -> i.getCoinId()).collect(Collectors.toSet());
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
-        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 600, 1, false, "");
+        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 600, 3, false, "");
 //        List<CoinList> coinList = client.getCoinList();
         System.out.println("总条数； " + coinList.size());
         int size = coinList.size() / threadNum;
@@ -58,10 +60,10 @@ public class InitTest {
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
         List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 200, 1, false, "");
-        int j=0;
+        int j = 0;
         for (CoinPriceOrder order : all) {
             coinList = coinList.stream().filter(i -> i.getId().equals(order.getCoinId())).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(coinList)){
+            if (CollectionUtils.isEmpty(coinList)) {
                 j++;
 
             }
@@ -119,5 +121,54 @@ public class InitTest {
     @Test
     public void testmail() {
         mailService.sendMail("测试邮箱");
+    }
+
+    @Test
+    public void testexchange() {
+        long start = System.currentTimeMillis();
+        CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
+        ExchangesTickersById huobi = getExchangeTicker(client, "huobi");
+        ExchangesTickersById okex = getExchangeTicker(client, "okex");
+        ExchangesTickersById binance = getExchangeTicker(client, "binance");
+        List<CoinMarkets> coinList = getCoinMarkert(client);
+        final List<CoinMarkets> coinMarkets = new ArrayList<>();
+        coinList.parallelStream().forEach(j -> {
+            List<Ticker> huobicollect = huobi.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
+            ).collect(Collectors.toList());
+            List<Ticker> okexcollect = okex.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
+            ).collect(Collectors.toList());
+            List<Ticker> binanceollect = binance.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
+            ).collect(Collectors.toList());
+            if (huobicollect.size() + okexcollect.size() + binanceollect.size() == 1) {
+                String name = huobicollect.size() == 1 ? huobi.getName()
+                        : okexcollect.size() == 1 ? okex.getName()
+                        : binance.getName();
+                j.setName(name);
+                coinMarkets.add(j);
+//                System.out.println(name + "      " + j.getSymbol());
+            }
+        });
+        List<CoinMarkets> sortList = coinMarkets.stream().sorted((i, j) -> (int) (i.getMarketCapRank() - j.getMarketCapRank())).collect(Collectors.toList());
+        sortList.stream().forEach(i -> {
+            System.out.println(i.getName() + "      " + i.getSymbol() + "      " + i.getMarketCapRank());
+        });
+        System.out.println(sortList.size());
+        System.out.println("花费时间： " + (System.currentTimeMillis() - start) / 1000);
+    }
+
+    private ExchangesTickersById getExchangeTicker(CoinGeckoApiClient client, String exchangeId) {
+        ExchangesTickersById exchangesTickersById = client.getExchangesTickersById(exchangeId, null, 1, null);
+        for (int i = 2; i < 7; i++) {
+            exchangesTickersById.getTickers().addAll(client.getExchangesTickersById(exchangeId, null, i, null).getTickers());
+        }
+        return exchangesTickersById;
+    }
+
+    private List<CoinMarkets> getCoinMarkert(CoinGeckoApiClient client) {
+        List<CoinMarkets> coinList = new ArrayList<>();
+        for (int i = 1; i < 7; i++) {
+            coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 100, i, false, ""));
+        }
+        return coinList;
     }
 }
