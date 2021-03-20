@@ -120,7 +120,7 @@ public class InitTest {
 
     @Test
     public void testmail() {
-        mailService.sendMail("测试邮箱");
+        mailService.sendMail("测试邮箱",true);
     }
 
     @Test

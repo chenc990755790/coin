@@ -20,15 +20,23 @@ public class MailService {
     private SimpleMailMessage mailMessage;
 
     @Async
-    public void sendMail(String text) {
+    public void sendMail(String text, boolean onlyOwn) {
         try {
             log.info("发送邮件");
             mailMessage.setText(text);
+            if (onlyOwn) {
+                sendMailOnlyOwe();
+            }
             mailSender.send(mailMessage);
             log.info("邮件发送成功");
         } catch (MailException e) {
             log.error("发送失败", e);
         }
+    }
+
+    public void sendMailOnlyOwe() {
+        mailMessage.setSubject("火币专有");
+        mailMessage.setTo(mailMessage.getTo()[0]);
     }
 
 }
