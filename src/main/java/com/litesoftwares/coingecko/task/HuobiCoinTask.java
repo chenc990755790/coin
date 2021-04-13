@@ -33,7 +33,7 @@ public class HuobiCoinTask {
     private Vector<CoinPriceOrder> highPriceList = new Vector<>();
 
 
-    @Scheduled(cron = "0 5/15 0/1 * * ?")
+//    @Scheduled(cron = "0 5/15 0/1 * * ?")
     public void exchangeTask() throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         ExchangesTickersById huobi = getExchangeTicker(client, "huobi");
@@ -61,7 +61,7 @@ public class HuobiCoinTask {
         List<CoinPriceOrder> coinPriceOrder = getCoinPriceOrder(huobi_global);
         asyncService.getOverHighPrice(coinPriceOrder, countDownLatch, highPriceList);
         countDownLatch.await();
-        asyncService.sendMailCheck(highPriceList, true);
+//        asyncService.sendMailCheck(highPriceList, true);
     }
 
     private ExchangesTickersById getExchangeTicker(CoinGeckoApiClient client, String exchangeId) {

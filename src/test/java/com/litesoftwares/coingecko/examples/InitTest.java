@@ -5,9 +5,11 @@ import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
 import com.litesoftwares.coingecko.domain.Coins.CoinMarkets;
 import com.litesoftwares.coingecko.domain.Exchanges.ExchangesTickersById;
+import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
+import com.litesoftwares.coingecko.task.AsyncService;
 import com.litesoftwares.coingecko.task.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -17,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 
+import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -32,9 +35,12 @@ import java.util.stream.Collectors;
 public class InitTest {
     @Autowired
     private CoinPriceOrderRepository coinPriceOrderRepository;
+
     private int threadNum = 6;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private AsyncService asyncService;
 
     @Test
     public void initHighPrice() throws InterruptedException {
@@ -119,11 +125,6 @@ public class InitTest {
     }
 
     @Test
-    public void testmail() {
-        mailService.sendMail("测试邮箱",true);
-    }
-
-    @Test
     public void testexchange() {
         long start = System.currentTimeMillis();
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
@@ -170,5 +171,13 @@ public class InitTest {
             coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 100, i, false, ""));
         }
         return coinList;
+    }
+
+    @Test
+    public void testMail() throws MessagingException {
+
+        List<CoinPriceOrder> bySymbol = coinPriceOrderRepository.findBySymbol("eth");
+        List<PriceOrder> orders = asyncService.buildNewOrder(bySymbol);
+        mailService.sendhtmlmail(orders);
     }
 }

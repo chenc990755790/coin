@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/huobi?serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull&autoReconnect=true&useSSL=false&failOverReadOnly=false
+    url: jdbc:mysql://localhost:3306/huobi?serverTimezone=Asia/Shanghai&zeroDateTimeBehavior=convertToNull&autoReconnect=true&useSSL=false&failOverReadOnly=false&allowPublicKeyRetrieval=true
     username: root
     password: chenchao
     type: com.zaxxer.hikari.HikariDataSource
@@ -9,7 +9,8 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-#  mail:
+    database-platform: org.hibernate.dialect.MySQLDialect
+  #  mail:
 #    host: smtp.163.com
 #    username: 13065189401@163.com
 #    password: CHEN4419
@@ -22,6 +23,7 @@ spring:
     password: KBBVNQVCPUTZYNTO
     username: 13065189401@163.com
     port: 25
+    default-encoding: UTF-8
   #    host: smtp.gmail.com
 #    username: shaoshuai2028@gmail.com
 #    password: shaoSHAI123
@@ -41,9 +43,14 @@ spring:
 #        dispaly:
 #          sendmail: shaoshuai2028@gmail.com
 #          sendname: sendname
-
+  thymeleaf:
+    cache: false
+    suffix: .html
+    prefix: classpath:/templates/
+    encoding: UTF-8
 mess:
   from: ${spring.mail.username}
-  to: ${spring.mail.username},gleader002@126.com
+  to: ${spring.mail.username}
+  #,gleader002@126.com,15313524729@163.com,okehanzhao@hotmail.com,398073582@qq.com,lin@swft.pro
 
 

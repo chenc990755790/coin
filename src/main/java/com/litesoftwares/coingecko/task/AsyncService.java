@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -28,9 +29,9 @@ import java.util.stream.Collectors;
 public class AsyncService {
 
     @Autowired
-    private CoinPriceOrderRepository coinPriceOrderRepository;
-    @Autowired
     private MailService mailService;
+    @Autowired
+    private CoinPriceOrderRepository coinPriceOrderRepository;
 
     private List<CoinMarkets> coinList = new ArrayList<>(600);
 
@@ -57,6 +58,10 @@ public class AsyncService {
                 BigDecimal newPrice = new BigDecimal(newList.get(0).getAth()).setScale(6, RoundingMode.HALF_UP);
                 if (newPrice.compareTo(order.getPrice()) > 0) {
                     order.setOldPrice(order.getPrice());
+                    if (order.getNewMarkerOrder() != 0) {
+                        order.setMarkerOrder(order.getNewMarkerOrder());
+                    }
+                    order.setNewMarkerOrder(newList.get(0).getMarketCapRank());
                     order.setPrice(newPrice);
                     order.setOldPriceDate(order.getUpdateTime());
                     order.setUpdateTime(sdf.get().parse(newList.get(0).getAthDate().replace("Z", " UTC")));
@@ -75,8 +80,8 @@ public class AsyncService {
 
     public List<CoinMarkets> getCoinMarkert() {
         coinList.clear();
-        for (int i = 1; i < 7; i++) {
-            coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 100, i, false, ""));
+        for (int i = 1; i < 3; i++) {
+            coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 250, i, false, ""));
         }
         return coinList;
     }
@@ -95,21 +100,23 @@ public class AsyncService {
             PriceOrder priceOrder = new PriceOrder();
             BeanUtils.copyProperties(order, priceOrder);
             BigDecimal rate = priceOrder.getPrice().subtract(priceOrder.getOldPrice())
-                    .multiply(priceOrder.getOldPrice()).multiply(new BigDecimal(100)).setScale(2, RoundingMode.HALF_UP);
+                    .divide(priceOrder.getOldPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
             priceOrder.setIncreaseRate(rate);
-            priceOrder.setCoingeckUrl("https://www.coingecko.com/zh/%E6%95%B0%E5%AD%97%E8%B4%A7%E5%B8%81/" + order.getCoinId());
+            priceOrder.setCoingeckUrl("https://www.coingecko.com/en/coins/" + order.getCoinId());
+            priceOrder.setCoinmarketcapUrl("https://coinmarketcap.com/currencies/" + order.getSymbol());
+            priceOrder.setFeixiaohaoUrl("https://www.feixiaohao.com/currencies/" + order.getSymbol());
             orders.add(priceOrder);
         }
         return orders;
     }
 
-    public void sendMailCheck(Vector<CoinPriceOrder> highPriceList, boolean isOnlyOwn) {
+    public void sendMailCheck(Vector<CoinPriceOrder> highPriceList, boolean isOnlyOwn) throws MessagingException {
         if (highPriceList.size() > 0) {
             List<PriceOrder> orders = buildNewOrder(highPriceList);
             orders = orders.parallelStream().filter(i -> i.getInterval() > 0L).collect(Collectors.toList());
             orders.sort((a, b) -> (int) (a.getMarkerOrder() - b.getMarkerOrder()));
             if (orders.size() > 0) {
-                mailService.sendMail(buildListString(orders), isOnlyOwn);
+                mailService.sendhtmlmail(orders);
                 log.info(orders.toString());
                 if (isOnlyOwn) return;
                 List<PriceOrder> finalOrders = orders;

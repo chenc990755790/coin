@@ -21,11 +21,16 @@ public class CoinPriceOrder {
     private String coinId;
     @Column(length = 6)
     private long markerOrder;
+    @Column(length = 6)
+    private long newMarkerOrder;
 
     private Date updateTime;
     @Transient
     private BigDecimal oldPrice;
     @Transient
     private Date oldPriceDate;
-
+    @Column(length = 10)
+    private String referrerName;
+    @Column(length = 30)
+    private String referrerReason;
 }

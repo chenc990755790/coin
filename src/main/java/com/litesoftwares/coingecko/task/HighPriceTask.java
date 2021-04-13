@@ -9,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
@@ -38,8 +39,8 @@ public class HighPriceTask {
         corePoolSize = threadPoolTaskExecutor.getCorePoolSize();
     }
 
-    @Scheduled(cron = "0 10/15 0/1 * * ?")
-    public void getCurrentPrice() throws InterruptedException {
+    @Scheduled(cron = "0 3/5 0/1 * * ?")
+    public void getCurrentPrice() throws InterruptedException, MessagingException {
         highPriceList.clear();
         countDownLatch = new CountDownLatch(corePoolSize);
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
