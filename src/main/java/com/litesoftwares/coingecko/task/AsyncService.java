@@ -116,16 +116,13 @@ public class AsyncService {
             orders = orders.parallelStream().filter(i -> i.getInterval() > 0L).collect(Collectors.toList());
             orders.sort((a, b) -> (int) (a.getMarkerOrder() - b.getMarkerOrder()));
             if (orders.size() > 0) {
+                if (isOnlyOwn) return;
                 mailService.sendhtmlmail(orders);
                 log.info(orders.toString());
-                if (isOnlyOwn) return;
-                List<PriceOrder> finalOrders = orders;
-                highPriceList.parallelStream().forEach(i -> {
-                    List<PriceOrder> collect = finalOrders.parallelStream().filter(j -> j.getSymbol().equalsIgnoreCase(i.getSymbol())).collect(Collectors.toList());
-                    if (collect.size() > 0)
-                        coinPriceOrderRepository.save(i);
-                });
             }
+            highPriceList.parallelStream().forEach(i -> {
+                coinPriceOrderRepository.save(i);
+            });
         }
     }
 }
