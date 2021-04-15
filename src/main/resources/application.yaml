@@ -50,7 +50,6 @@ spring:
     encoding: UTF-8
 mess:
   from: ${spring.mail.username}
-  to: ${spring.mail.username}
-  #,gleader002@126.com,15313524729@163.com,okehanzhao@hotmail.com,398073582@qq.com,lin@swft.pro
+  to: ${spring.mail.username},1179552827@qq.com,gleader002@126.com,15313524729@163.com,okehanzhao@hotmail.com,398073582@qq.com,lin@swft.pro
 
 

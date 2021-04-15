@@ -81,7 +81,7 @@ public class AsyncService {
     public List<CoinMarkets> getCoinMarkert() {
         coinList.clear();
         for (int i = 1; i < 3; i++) {
-            coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 250, i, false, ""));
+            coinList.addAll(client.getCoinMarkets(Currency.USD, null, null, 200, i, false, ""));
         }
         return coinList;
     }
@@ -103,8 +103,8 @@ public class AsyncService {
                     .divide(priceOrder.getOldPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
             priceOrder.setIncreaseRate(rate);
             priceOrder.setCoingeckUrl("https://www.coingecko.com/en/coins/" + order.getCoinId());
-            priceOrder.setCoinmarketcapUrl("https://coinmarketcap.com/currencies/" + order.getSymbol());
-            priceOrder.setFeixiaohaoUrl("https://www.feixiaohao.com/currencies/" + order.getSymbol());
+            priceOrder.setCoinmarketcapUrl("https://coinmarketcap.com/currencies/" + order.getCoinId());
+            priceOrder.setFeixiaohaoUrl("https://www.feixiaohao.com/currencies/" + order.getCoinId());
             orders.add(priceOrder);
         }
         return orders;
