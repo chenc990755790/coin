@@ -26,9 +26,9 @@
         <td th:text="${info.symbol}"></td>
         <td th:text="${info.markerOrder}"></td>
         <td th:text="${info.newMarkerOrder}"></td>
-        <td th:text="${#numbers.formatDecimal(info.price,0,2)}"></td>
-        <td th:text="${#numbers.formatDecimal(info.oldPrice,0,2)}"></td>
-        <td th:text="${#numbers.formatDecimal(info.increaseRate,0,2)}"></td>
+        <td th:text="${#numbers.formatDecimal(info.price,1,2)}"></td>
+        <td th:text="${#numbers.formatDecimal(info.oldPrice,1,2)}"></td>
+        <td th:text="${#numbers.formatDecimal(info.increaseRate,1,2)}"></td>
         <td th:text="${info.oldPriceDate}"></td>
         <td th:text="${info.interval}"></td>
         <td><a th:href="${info.coingeckUrl}" th:text="coingeckUrl"></a></td>
