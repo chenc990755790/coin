@@ -10,6 +10,9 @@ spring:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
   #  mail:
 #    host: smtp.163.com
 #    username: 13065189401@163.com
