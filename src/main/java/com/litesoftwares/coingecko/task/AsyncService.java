@@ -2,8 +2,12 @@ package com.litesoftwares.coingecko.task;
 
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
+import com.litesoftwares.coingecko.constant.ErrorCode;
+import com.litesoftwares.coingecko.constant.ResultCode;
+import com.litesoftwares.coingecko.domain.ChartEntity;
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
 import com.litesoftwares.coingecko.domain.Coins.CoinMarkets;
+import com.litesoftwares.coingecko.domain.Coins.MarketChart;
 import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
@@ -19,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
@@ -45,6 +50,12 @@ public class AsyncService {
         @Override
         protected SimpleDateFormat initialValue() {
             return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS Z");
+        }
+    };
+    private ThreadLocal<SimpleDateFormat> simpleDateFormat = new ThreadLocal<SimpleDateFormat>() {
+        @Override
+        protected SimpleDateFormat initialValue() {
+            return new SimpleDateFormat("yyyy-MM-dd");
         }
     };
 
@@ -86,6 +97,11 @@ public class AsyncService {
         return coinList;
     }
 
+    public List<CoinMarkets> getCoinMarkertTop50() {
+        return client.getCoinMarkets(Currency.USD, null, null, 50, 1, false, "");
+    }
+
+
     public String buildListString(List<PriceOrder> highPriceList) {
         StringBuilder stringBuilder = new StringBuilder();
         for (PriceOrder order : highPriceList) {
@@ -125,4 +141,33 @@ public class AsyncService {
             });
         }
     }
+
+    public ChartEntity getLastedData(String firstCoinId, String secondCoinId) {
+        ChartEntity entity = new ChartEntity();
+        try {
+            MarketChart first = client.getCoinMarketChartById(firstCoinId, "usd", 365);
+            MarketChart second = client.getCoinMarketChartById(secondCoinId, "usd", 365);
+            List<String> dateList = first.getPrices().stream().map(i ->
+                    simpleDateFormat.get().format(new Date(Long.parseLong(i.get(0))))
+            ).collect(Collectors.toList());
+            if (first.getPrices().size() < 366 || second.getPrices().size() < 366) {
+                log.error("线上数据不够365条");
+                entity.setStatus(new ResultCode(ErrorCode.DATA_NOT_FULL));
+                return entity;
+            }
+            entity.setDateList(dateList);
+            List<BigDecimal> rateList = new ArrayList<>();
+            for (int i = 0; i < first.getPrices().size(); i++) {
+                BigDecimal firstBig = new BigDecimal(first.getPrices().get(i).get(1));
+                BigDecimal secondBig = new BigDecimal(second.getPrices().get(i).get(1));
+                BigDecimal divide = firstBig.divide(secondBig, 4, RoundingMode.HALF_DOWN);
+                rateList.add(divide);
+            }
+            entity.setStatus(new ResultCode(ErrorCode.SUCCESS));
+            entity.setRateList(rateList);
+        } finally {
+            return entity;
+        }
+    }
+
 }

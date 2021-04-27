@@ -62,7 +62,7 @@ public interface CoinGeckoApiService {
 
     @GET("coins/{id}/market_chart")
     Call<MarketChart> getCoinMarketChartById(@Path("id") String id, @Query("vs_currency") String vsCurrency,
-                                        @Query("days") Integer days);
+                                        @Query("days") Integer days,@Query("interval") String interval);
 
     @GET("coins/{id}/market_chart/range")
     Call<MarketChart> getCoinMarketChartRangeById(@Path("id") String id, @Query("vs_currency") String vsCurrency,

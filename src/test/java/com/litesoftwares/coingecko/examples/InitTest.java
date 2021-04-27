@@ -22,10 +22,7 @@ import org.springframework.util.CollectionUtils;
 import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -35,6 +32,8 @@ import java.util.stream.Collectors;
 public class InitTest {
     @Autowired
     private CoinPriceOrderRepository coinPriceOrderRepository;
+//    @Autowired
+//    private SymbolPriceRepository symbolPriceRepository;
 
     private int threadNum = 6;
     @Autowired
@@ -180,4 +179,45 @@ public class InitTest {
         List<PriceOrder> orders = asyncService.buildNewOrder(bySymbol);
         mailService.sendhtmlmail(orders);
     }
+
+//    @Test
+//    public void testGetPrice() {
+//        CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
+//        MarketChart coinMarketChartById = client.getCoinMarketChartById("bitcoin", "usd", 100);
+//        coinMarketChartById.getPrices().stream().forEach(i -> {
+//            if (coinMarketChartById.getPrices().lastIndexOf(i) == coinMarketChartById.getPrices().size() - 1) return;
+//            SymbolPrice symbolPrice = new SymbolPrice();
+//            Calendar instance = Calendar.getInstance();
+//            instance.setTime(new Date(Long.parseLong(i.get(0))));
+//            symbolPrice.setBtc(new BigDecimal(i.get(1)));
+//            symbolPrice.setCurrDate(instance);
+//            symbolPriceRepository.save(symbolPrice);
+//        });
+//    }
+
+//    @Test
+//    public void testGetOtherPrice() {
+//        List<SymbolPrice> all = symbolPriceRepository.findAll();
+//        CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
+//        MarketChart coinMarketChartById = client.getCoinMarketChartById("ethereum", "usd", 100);
+//        coinMarketChartById.getPrices().stream().forEach(i -> {
+//            Calendar instance = Calendar.getInstance();
+//            instance.setTime(new Date(Long.parseLong(i.get(0))));
+//            List<SymbolPrice> collect = all.stream().filter(j -> j.getCurrDate().compareTo(instance) == 0).collect(Collectors.toList());
+//            if (CollectionUtils.isEmpty(collect)) {
+//                System.out.println(new Date(Long.parseLong(i.get(0))));
+//                return;
+//            }
+//            SymbolPrice symbolPrice = collect.get(0);
+//            symbolPrice.setEth(new BigDecimal(i.get(1)));
+//            symbolPriceRepository.save(symbolPrice);
+//        });
+//    }
+//
+//    @Test
+//    public void testSymbolPrice(){
+//        Pageable pageable = PageRequest.of(0, 100, Sort.Direction.DESC, "currDate");
+//        Page<SymbolPrice> all = symbolPriceRepository.findAll(pageable);
+//        System.out.println(all.getContent().size());
+//    }
 }

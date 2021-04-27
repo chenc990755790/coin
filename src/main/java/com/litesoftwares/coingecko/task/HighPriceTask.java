@@ -39,7 +39,7 @@ public class HighPriceTask {
         corePoolSize = threadPoolTaskExecutor.getCorePoolSize();
     }
 
-    @Scheduled(cron = "0 3/5 0/1 * * ?")
+    @Scheduled(cron = "0 3/5 * * * ?")
     public void getCurrentPrice() throws InterruptedException, MessagingException {
         highPriceList.clear();
         countDownLatch = new CountDownLatch(corePoolSize);

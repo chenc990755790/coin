@@ -103,7 +103,7 @@ public class CoinGeckoApiClientImpl implements CoinGeckoApiClient {
 
     @Override
     public MarketChart getCoinMarketChartById(String id, String vsCurrency, Integer days) {
-        return coinGeckoApi.executeSync(coinGeckoApiService.getCoinMarketChartById(id,vsCurrency,days));
+        return coinGeckoApi.executeSync(coinGeckoApiService.getCoinMarketChartById(id,vsCurrency,days,"daily"));
     }
 
     @Override
