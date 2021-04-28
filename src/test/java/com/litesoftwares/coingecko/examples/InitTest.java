@@ -2,12 +2,15 @@ package com.litesoftwares.coingecko.examples;
 
 import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
+import com.litesoftwares.coingecko.domain.Btc60DayIncrease;
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
 import com.litesoftwares.coingecko.domain.Coins.CoinMarkets;
+import com.litesoftwares.coingecko.domain.Coins.MarketChart;
 import com.litesoftwares.coingecko.domain.Exchanges.ExchangesTickersById;
 import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
+import com.litesoftwares.coingecko.repository.Btc60DayIncreaseRepository;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
 import com.litesoftwares.coingecko.task.AsyncService;
 import com.litesoftwares.coingecko.task.MailService;
@@ -16,11 +19,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.CollectionUtils;
 
 import javax.mail.MessagingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +48,8 @@ public class InitTest {
     private MailService mailService;
     @Autowired
     private AsyncService asyncService;
+    @Autowired
+    private Btc60DayIncreaseRepository btc60DayIncreaseRepository;
 
     @Test
     public void initHighPrice() throws InterruptedException {
@@ -220,4 +230,46 @@ public class InitTest {
 //        Page<SymbolPrice> all = symbolPriceRepository.findAll(pageable);
 //        System.out.println(all.getContent().size());
 //    }
+
+    @Test
+    public void day60Increase() {
+        CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
+        MarketChart coinMarketChartById = client.getCoinMarketChartById("bitcoin", "usd", 2000);
+        List<List<String>> prices = coinMarketChartById.getPrices();
+        for (int i = 1; i < prices.size() - 1; i++) {
+            Btc60DayIncrease increase = new Btc60DayIncrease();
+            Calendar instance = Calendar.getInstance();
+            instance.setTime(new Date(Long.parseLong(prices.get(i).get(0))));
+            increase.setOpen(new BigDecimal(prices.get(i - 1).get(1)));
+            increase.setClose(new BigDecimal(prices.get(i).get(1)));
+            increase.setCurrDate(instance);
+            BigDecimal divide = increase.getClose().subtract(increase.getOpen()).divide(increase.getOpen(), 4, RoundingMode.HALF_DOWN);
+            increase.setCurrRate(divide);
+            btc60DayIncreaseRepository.save(increase);
+        }
+
+    }
+
+    @Test
+    public void get60Increase() {
+        List<Btc60DayIncrease> all = btc60DayIncreaseRepository.findAll();
+        Collections.reverse(all);
+        for (int i = 0; i < all.size() - 60; i++) {
+            double sum = all.subList(i, i + 60).parallelStream().mapToDouble(j -> j.getCurrRate().doubleValue()).sum();
+            Btc60DayIncrease increase = all.get(i);
+            increase.setDays60Rate(new BigDecimal(sum));
+            btc60DayIncreaseRepository.save(increase);
+        }
+    }
+
+    @Test
+    public void testUpdateLastedData(){
+        Pageable pageable = PageRequest.of(0, 60, Sort.Direction.DESC, "currDate");
+        Page<Btc60DayIncrease> all = btc60DayIncreaseRepository.findAll(pageable);
+        double sum = all.getContent().stream().mapToDouble(i -> i.getCurrRate().doubleValue()).sum();
+        Btc60DayIncrease increase = all.getContent().get(0);
+        System.out.println(increase.getCurrDate().getTime());
+
+    }
+
 }

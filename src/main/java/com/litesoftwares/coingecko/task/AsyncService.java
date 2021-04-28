@@ -4,12 +4,14 @@ import com.litesoftwares.coingecko.CoinGeckoApiClient;
 import com.litesoftwares.coingecko.constant.Currency;
 import com.litesoftwares.coingecko.constant.ErrorCode;
 import com.litesoftwares.coingecko.constant.ResultCode;
+import com.litesoftwares.coingecko.domain.Btc60DayIncrease;
 import com.litesoftwares.coingecko.domain.ChartEntity;
 import com.litesoftwares.coingecko.domain.CoinPriceOrder;
 import com.litesoftwares.coingecko.domain.Coins.CoinMarkets;
 import com.litesoftwares.coingecko.domain.Coins.MarketChart;
 import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
+import com.litesoftwares.coingecko.repository.Btc60DayIncreaseRepository;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -33,10 +35,14 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AsyncService {
 
+    private final BigDecimal HUNDRED = new BigDecimal(100);
+
     @Autowired
     private MailService mailService;
     @Autowired
     private CoinPriceOrderRepository coinPriceOrderRepository;
+    @Autowired
+    private Btc60DayIncreaseRepository btc60DayIncreaseRepository;
 
     private List<CoinMarkets> coinList = new ArrayList<>(600);
 
@@ -165,6 +171,22 @@ public class AsyncService {
             }
             entity.setStatus(new ResultCode(ErrorCode.SUCCESS));
             entity.setRateList(rateList);
+        } finally {
+            return entity;
+        }
+    }
+
+    public ChartEntity getBtc60Increase() {
+        ChartEntity entity = new ChartEntity();
+        try {
+            List<Btc60DayIncrease> collect = btc60DayIncreaseRepository.findAll().parallelStream().filter(i -> i.getDays60Rate() != null).collect(Collectors.toList());
+            List<String> dateList = collect.stream().map(i -> simpleDateFormat.get().format(i.getCurrDate().getTime())).collect(Collectors.toList());
+            entity.setDateList(dateList);
+            List<BigDecimal> rateList = collect.stream().map(i -> i.getDays60Rate().multiply(HUNDRED)).collect(Collectors.toList());
+            entity.setRateList(rateList);
+            entity.setStatus(new ResultCode(ErrorCode.SUCCESS));
+        } catch (Exception e) {
+            entity.setStatus(new ResultCode(ErrorCode.FAIL));
         } finally {
             return entity;
         }

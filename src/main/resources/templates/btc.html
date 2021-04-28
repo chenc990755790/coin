@@ -13,19 +13,6 @@
 
 </head>
 <body>
-<div th:border="1px" style="height:200px;border-bottom: aliceblue 100px;padding-top: 100px" align="center">
-    <select id="first" class="easyui-combobox" name="state" th:label="第一币种"
-            style="width:10%;">
-        <option value=""></option>
-        <option th:each="item:${symbolList}" th:value="${item.id}" th:text="${item.symbol}"></option>
-    </select>
-
-    <select id="second" class="easyui-combobox" name="state" th:label="第二币种" style="width:10%;">
-        <option value=""></option>
-        <option th:each="item:${symbolList}" th:value="${item.id}" th:text="${item.symbol}"></option>
-    </select>
-    <a href="#" class="easyui-linkbutton" th:text="提交"></a>
-</div>
 <!-- 为ECharts准备一个具备大小（宽高）的Dom style="width: 600px;height:400px;" -->
 <div id="main" style="width:100%; height:500px;" th:x="${data.getDateList()}" th:y="${data.getRateList()}"></div>
 <script type="text/javascript">
@@ -45,7 +32,7 @@
         },
         title: {
             left: 'center',
-            text: 'btc/eth',
+            text: 'btc-60日累计涨幅',
         },
         toolbox: {
             feature: {
@@ -63,7 +50,7 @@
         },
         yAxis: {
             type: 'value',
-            boundaryGap: [0, '50%']
+            boundaryGap: [0, '20%']
         },
         dataZoom: [{
             type: 'inside',
@@ -95,31 +82,8 @@
             }
         ]
     };
-
     // 使用刚指定的配置项和数据显示图表。
     myChart.setOption(option);
-    $("a").click(function () {
-        var firstCoinid = $('#first  option:selected').val();
-        var secondCoinId = $('#second  option:selected').val();
-        console.log(firstCoinid + " " + secondCoinId)
-        $.ajax({
-            type: "POST",
-            url: '/echarts?firstCoinid=' + firstCoinid + "&secondCoinId=" + secondCoinId,
-            data: {query: "javascript"},
-            contentType: "application/json",
-            success: function (data) {
-                // var myChart = echarts.init(document.getElementById('main'));
-                if (data.status.code != '200') {
-                    alert(data.status.msg)
-                }
-                var option = myChart.getOption();
-                option.series[0].data = data.rateList;
-                option.title[0].text = $('#first  option:selected').text() + "/" + $('#second  option:selected').text();
-                myChart.setOption(option);
-            }
-        });
-
-    });
 </script>
 </body>
 </html>

@@ -45,4 +45,11 @@ public class EchartController {
         return "echarts";
     }
 
+    @RequestMapping("/btc")
+    public String btc60Increase(Model model) {
+        ChartEntity btc60Increase = asyncService.getBtc60Increase();
+        model.addAttribute("data", btc60Increase);
+        return "btc";
+    }
+
 }
