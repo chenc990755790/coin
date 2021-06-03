@@ -55,6 +55,7 @@ public class HuobiCoinTask {
             coinPriceOrderRepository.save(i);
         });
         all = all.parallelStream().filter(i -> i.getNewExchanges() != null && i.getNewExchanges().length() > 0).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(all)) return;
         Collections.sort(all, new Comparator<CoinPriceOrder>() {
             @Override
             public int compare(CoinPriceOrder o1, CoinPriceOrder o2) {
@@ -62,7 +63,6 @@ public class HuobiCoinTask {
             }
         });
         List<PriceOrder> orders = asyncService.buildNewOrder(all);
-
         mailService.sendexchangemail(orders);
     }
 
