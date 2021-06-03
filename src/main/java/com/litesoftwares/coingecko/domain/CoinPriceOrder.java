@@ -20,9 +20,9 @@ public class CoinPriceOrder {
     @Column(unique = true, length = 50)
     private String coinId;
     @Column(length = 6)
-    private long markerOrder;
+    private int markerOrder;
     @Column(length = 6)
-    private long newMarkerOrder;
+    private int newMarkerOrder;
 
     private Date updateTime;
     @Transient
@@ -33,4 +33,8 @@ public class CoinPriceOrder {
     private String referrerName;
     @Column(length = 30)
     private String referrerReason;
+    @Column(length = 100)
+    private String allExchanges;
+    @Transient
+    private String newExchanges;
 }

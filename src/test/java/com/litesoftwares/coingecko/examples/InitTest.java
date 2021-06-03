@@ -108,7 +108,7 @@ public class InitTest {
                     coinPriceOrder.setCoinId(list.getId());
                     coinPriceOrder.setPrice(new BigDecimal(list.getAth()));
                     coinPriceOrder.setUpdateTime(sdf.parse(list.getAthDate().replace("Z", " UTC")));
-                    coinPriceOrder.setMarkerOrder(list.getMarketCapRank());
+                    coinPriceOrder.setMarkerOrder((int)list.getMarketCapRank());
                     coinPriceOrderRepository.save(coinPriceOrder);
                     collect.add(list.getId());
                 } catch (Exception e) {
@@ -134,41 +134,52 @@ public class InitTest {
     }
 
     @Test
-    public void testexchange() {
+    public void testexchange() throws MessagingException {
         long start = System.currentTimeMillis();
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
         ExchangesTickersById huobi = getExchangeTicker(client, "huobi");
         ExchangesTickersById okex = getExchangeTicker(client, "okex");
         ExchangesTickersById binance = getExchangeTicker(client, "binance");
-        List<CoinMarkets> coinList = getCoinMarkert(client);
-        final List<CoinMarkets> coinMarkets = new ArrayList<>();
-        coinList.parallelStream().forEach(j -> {
-            List<Ticker> huobicollect = huobi.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
-            ).collect(Collectors.toList());
-            List<Ticker> okexcollect = okex.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
-            ).collect(Collectors.toList());
-            List<Ticker> binanceollect = binance.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(j.getSymbol())
-            ).collect(Collectors.toList());
-            if (huobicollect.size() + okexcollect.size() + binanceollect.size() == 1) {
-                String name = huobicollect.size() == 1 ? huobi.getName()
-                        : okexcollect.size() == 1 ? okex.getName()
-                        : binance.getName();
-                j.setName(name);
-                coinMarkets.add(j);
-//                System.out.println(name + "      " + j.getSymbol());
+        ExchangesTickersById ftx = getExchangeTicker(client, "ftx_spot");
+        ExchangesTickersById coinbaseExchange = getExchangeTicker(client, "gdax");
+        ExchangesTickersById upbit = getExchangeTicker(client, "Upbit");
+        List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
+        all.parallelStream().forEach(i->{
+            StringBuffer stringBuffer = new StringBuffer();
+            if (containExchange(huobi,i.getSymbol())) stringBuffer.append("huobi").append(",");
+            if (containExchange(okex,i.getSymbol())) stringBuffer.append("okex").append(",");
+            if (containExchange(binance,i.getSymbol())) stringBuffer.append("binance").append(",");
+            if (containExchange(ftx,i.getSymbol())) stringBuffer.append("ftx").append(",");
+            if (containExchange(coinbaseExchange,i.getSymbol())) stringBuffer.append("Coinbase").append(",");
+            if (containExchange(upbit,i.getSymbol())) stringBuffer.append("upbit").append(",");
+            if (stringBuffer.length()>0)  stringBuffer.deleteCharAt(stringBuffer.length()-1);
+            i.setAllExchanges(stringBuffer.toString());
+            coinPriceOrderRepository.save(i);
+        });
+        Collections.sort(all, new Comparator<CoinPriceOrder>() {
+            @Override
+            public int compare(CoinPriceOrder o1, CoinPriceOrder o2) {
+                return o1.getMarkerOrder()-o2.getMarkerOrder();
             }
         });
-        List<CoinMarkets> sortList = coinMarkets.stream().sorted((i, j) -> (int) (i.getMarketCapRank() - j.getMarketCapRank())).collect(Collectors.toList());
-        sortList.stream().forEach(i -> {
-            System.out.println(i.getName() + "      " + i.getSymbol() + "      " + i.getMarketCapRank());
-        });
-        System.out.println(sortList.size());
+        List<PriceOrder> orders = asyncService.buildNewOrder(all);
+        mailService.sendhtmlmail(orders);
+        System.out.println(all);
         System.out.println("花费时间： " + (System.currentTimeMillis() - start) / 1000);
+    }
+
+    private boolean containExchange(ExchangesTickersById exchanges,String symbol){
+        List<Ticker> huobicollect = exchanges.getTickers().parallelStream().filter(i -> i.getBase().equalsIgnoreCase(symbol)
+        ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(huobicollect)) {
+            return false;
+        }
+        return true;
     }
 
     private ExchangesTickersById getExchangeTicker(CoinGeckoApiClient client, String exchangeId) {
         ExchangesTickersById exchangesTickersById = client.getExchangesTickersById(exchangeId, null, 1, null);
-        for (int i = 2; i < 7; i++) {
+        for (int i = 1; i < 8; i++) {
             exchangesTickersById.getTickers().addAll(client.getExchangesTickersById(exchangeId, null, i, null).getTickers());
         }
         return exchangesTickersById;

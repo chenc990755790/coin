@@ -11,9 +11,9 @@ public class PriceOrder {
 
     private String symbol;
 
-    private Long markerOrder;
+    private int markerOrder;
 
-    private long newMarkerOrder;
+    private int newMarkerOrder;
 
     private BigDecimal price;
 
@@ -34,6 +34,10 @@ public class PriceOrder {
     private String referrerName;
 
     private String referrerReason;
+
+    private String allExchanges;
+
+    private String newExchanges;
 
     public Long getInterval() {
         if (oldPriceDate == null) return 0L;

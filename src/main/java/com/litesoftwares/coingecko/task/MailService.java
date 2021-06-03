@@ -52,6 +52,7 @@ public class MailService {
     }
 
     public void sendhtmlmail(List<PriceOrder> priceOrderList) throws MessagingException {
+        log.info("发送邮件-突破新高");
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
         helper.setSubject("突破新高");
@@ -60,6 +61,21 @@ public class MailService {
         Context context = new Context();
         context.setVariable("orderList", priceOrderList);
         String process = templateEngine.process("priceorder.html", context);
+        // 第二个参数true表示这是一个html文本
+        helper.setText(process, true);
+        mailSender.send(mimeMessage);
+    }
+
+    public void sendexchangemail(List<PriceOrder> priceOrderList) throws MessagingException {
+        log.info("发送邮件-上新交易所");
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+        helper.setSubject("上新交易所");
+        helper.setFrom(mailMessage.getFrom());
+        helper.setTo(mailMessage.getTo());
+        Context context = new Context();
+        context.setVariable("orderList", priceOrderList);
+        String process = templateEngine.process("exchange.html", context);
         // 第二个参数true表示这是一个html文本
         helper.setText(process, true);
         mailSender.send(mimeMessage);

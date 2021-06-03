@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title th:text="突破新高"/>
+</head>
+<body>
+<table border="1">
+<!--    <a th:href="@{http://baidu.com}"></a>-->
+    <tr>
+        <th>币种</th>
+<!--        <th>市值</th>-->
+        <th>最新市值</th>
+<!--        <th>当前最高价</th>-->
+<!--        <th>上一次最高价</th>-->
+<!--        <th>增长比例</th>-->
+<!--        <th>上一次最高价日期</th>-->
+<!--        <th>间隔</th>-->
+<!--        <th>coingeck地址</th>-->
+<!--        <th>coinmarketcap地址</th>-->
+<!--        <th>非小号地址</th>-->
+<!--        <th>推荐人</th>-->
+<!--        <th>推荐理由</th>-->
+        <th>已上交易所</th>
+    </tr>
+    <tr th:each="info : ${orderList}">
+        <td th:text="${info.symbol}"></td>
+<!--        <td th:text="${info.markerOrder}"></td>-->
+        <td th:text="${info.newMarkerOrder}"></td>
+<!--        <td th:text="${#numbers.formatDecimal(info.price,1,4)}"></td>-->
+<!--        <td th:text="${#numbers.formatDecimal(info.oldPrice,1,4)}"></td>-->
+<!--        <td th:text="${#numbers.formatDecimal(info.increaseRate,1,2)}"></td>-->
+<!--        <td th:text="${info.oldPriceDate}"></td>-->
+<!--        <td th:text="${info.interval}"></td>-->
+<!--        <td><a th:href="${info.coingeckUrl}" th:text="coingeckUrl"></a></td>-->
+<!--        <td><a th:href="${info.coinmarketcapUrl}" th:text="coinmarketcapUrl"></a></td>-->
+<!--        <td><a th:href="${info.feixiaohaoUrl}" th:text="feixiaohaoUrl"></a></td>-->
+<!--        <td th:text="${info.referrerName}"></td>-->
+<!--        <td th:text="${info.referrerReason}"></td>-->
+        <td th:text="${info.newExchanges}"></td>
+    </tr>
+</table>
+</body>
+</html>

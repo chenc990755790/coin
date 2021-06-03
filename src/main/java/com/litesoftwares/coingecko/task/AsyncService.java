@@ -78,7 +78,7 @@ public class AsyncService {
                     if (order.getNewMarkerOrder() != 0) {
                         order.setMarkerOrder(order.getNewMarkerOrder());
                     }
-                    order.setNewMarkerOrder(newList.get(0).getMarketCapRank());
+                    order.setNewMarkerOrder((int)newList.get(0).getMarketCapRank());
                     order.setPrice(newPrice);
                     order.setOldPriceDate(order.getUpdateTime());
                     order.setUpdateTime(sdf.get().parse(newList.get(0).getAthDate().replace("Z", " UTC")));
@@ -121,12 +121,12 @@ public class AsyncService {
         for (CoinPriceOrder order : coinPriceOrders) {
             PriceOrder priceOrder = new PriceOrder();
             BeanUtils.copyProperties(order, priceOrder);
-            BigDecimal rate = priceOrder.getPrice().subtract(priceOrder.getOldPrice())
-                    .divide(priceOrder.getOldPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
-            priceOrder.setIncreaseRate(rate);
-            priceOrder.setCoingeckUrl("https://www.coingecko.com/en/coins/" + order.getCoinId());
-            priceOrder.setCoinmarketcapUrl("https://coinmarketcap.com/currencies/" + order.getCoinId());
-            priceOrder.setFeixiaohaoUrl("https://www.feixiaohao.com/currencies/" + order.getCoinId());
+//            BigDecimal rate = priceOrder.getPrice().subtract(priceOrder.getOldPrice())
+//                    .divide(priceOrder.getOldPrice(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+//            priceOrder.setIncreaseRate(rate);
+//            priceOrder.setCoingeckUrl("https://www.coingecko.com/en/coins/" + order.getCoinId());
+//            priceOrder.setCoinmarketcapUrl("https://coinmarketcap.com/currencies/" + order.getCoinId());
+//            priceOrder.setFeixiaohaoUrl("https://www.feixiaohao.com/currencies/" + order.getCoinId());
             orders.add(priceOrder);
         }
         return orders;
