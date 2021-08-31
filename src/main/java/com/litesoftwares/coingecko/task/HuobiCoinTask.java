@@ -7,7 +7,10 @@ import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.domain.Shared.Ticker;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
+import com.litesoftwares.coingecko.service.MailService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,7 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class HuobiCoinTask {
-
+    private static final Logger logger = LoggerFactory.getLogger(HuobiCoinTask.class);
     @Autowired
     private CoinPriceOrderRepository coinPriceOrderRepository;
 
@@ -33,23 +36,24 @@ public class HuobiCoinTask {
 
     private CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
 
-    @Scheduled(cron = "0 1/5 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     public void exchangeTask() throws MessagingException {
+        logger.info("check coin to exchange ");
         ExchangesTickersById huobi = getExchangeTicker(client, "huobi");
-        ExchangesTickersById okex = getExchangeTicker(client, "okex");
-        ExchangesTickersById binance = getExchangeTicker(client, "binance");
-        ExchangesTickersById ftx = getExchangeTicker(client, "ftx_spot");
-        ExchangesTickersById coinbaseExchange = getExchangeTicker(client, "gdax");
-        ExchangesTickersById upbit = getExchangeTicker(client, "Upbit");
+//        ExchangesTickersById okex = getExchangeTicker(client, "okex");
+//        ExchangesTickersById binance = getExchangeTicker(client, "binance");
+//        ExchangesTickersById ftx = getExchangeTicker(client, "ftx_spot");
+//        ExchangesTickersById coinbaseExchange = getExchangeTicker(client, "gdax");
+//        ExchangesTickersById upbit = getExchangeTicker(client, "Upbit");
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
         all.parallelStream().forEach(i -> {
             StringBuffer stringBuffer = new StringBuffer();
             if (containExchange(huobi, i)) stringBuffer.append(huobi.getName()).append(",");
-            if (containExchange(okex, i)) stringBuffer.append(okex.getName()).append(",");
-            if (containExchange(binance, i)) stringBuffer.append(binance.getName()).append(",");
-            if (containExchange(ftx, i)) stringBuffer.append(ftx.getName()).append(",");
-            if (containExchange(coinbaseExchange, i)) stringBuffer.append(coinbaseExchange.getName()).append(",");
-            if (containExchange(upbit, i)) stringBuffer.append(upbit.getName()).append(",");
+//            if (containExchange(okex, i)) stringBuffer.append(okex.getName()).append(",");
+//            if (containExchange(binance, i)) stringBuffer.append(binance.getName()).append(",");
+//            if (containExchange(ftx, i)) stringBuffer.append(ftx.getName()).append(",");
+//            if (containExchange(coinbaseExchange, i)) stringBuffer.append(coinbaseExchange.getName()).append(",");
+//            if (containExchange(upbit, i)) stringBuffer.append(upbit.getName()).append(",");
             i.setAllExchanges(i.getAllExchanges() + stringBuffer.toString());
             i.setNewExchanges(stringBuffer.toString());
             coinPriceOrderRepository.save(i);
@@ -79,7 +83,7 @@ public class HuobiCoinTask {
 
     private ExchangesTickersById getExchangeTicker(CoinGeckoApiClient client, String exchangeId) {
         ExchangesTickersById exchangesTickersById = client.getExchangesTickersById(exchangeId, null, 1, null);
-        for (int i = 1; i < 3; i++) {
+        for (int i = 2; i < 3; i++) {
             exchangesTickersById.getTickers().addAll(client.getExchangesTickersById(exchangeId, null, i, null).getTickers());
         }
         return exchangesTickersById;

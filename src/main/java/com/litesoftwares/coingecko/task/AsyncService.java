@@ -13,6 +13,7 @@ import com.litesoftwares.coingecko.domain.PriceOrder;
 import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.Btc60DayIncreaseRepository;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
+import com.litesoftwares.coingecko.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +25,7 @@ import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -48,6 +46,8 @@ public class AsyncService {
 
     private CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
 
+    private final List<CoinPriceOrder> markOrder = new ArrayList<>();
+
     public void setCoinList(List<CoinMarkets> coinList) {
         this.coinList = coinList;
     }
@@ -66,8 +66,8 @@ public class AsyncService {
     };
 
     @Async
-    public void getOverHighPrice(List<CoinPriceOrder> coinPriceOrders, CountDownLatch latch, Vector<CoinPriceOrder> vector) {
-        log.info(Thread.currentThread().getName() + " 任务开始");
+    public void getOverHighPrice(List<CoinPriceOrder> coinPriceOrders, CountDownLatch latch, Vector<CoinPriceOrder> vector) throws MessagingException {
+//        log.info(Thread.currentThread().getName() + " 任务开始");
         for (CoinPriceOrder order : coinPriceOrders) {
             try {
                 List<CoinMarkets> newList = coinList.parallelStream().filter(i -> i.getId().equalsIgnoreCase(order.getCoinId())).collect(Collectors.toList());
@@ -77,6 +77,8 @@ public class AsyncService {
                     order.setOldPrice(order.getPrice());
                     if (order.getNewMarkerOrder() != 0) {
                         order.setMarkerOrder(order.getNewMarkerOrder());
+                    } else {
+                        order.setNewMarkerOrder(order.getMarkerOrder());
                     }
                     order.setNewMarkerOrder((int)newList.get(0).getMarketCapRank());
                     order.setPrice(newPrice);

@@ -13,7 +13,7 @@ import com.litesoftwares.coingecko.impl.CoinGeckoApiClientImpl;
 import com.litesoftwares.coingecko.repository.Btc60DayIncreaseRepository;
 import com.litesoftwares.coingecko.repository.CoinPriceOrderRepository;
 import com.litesoftwares.coingecko.task.AsyncService;
-import com.litesoftwares.coingecko.task.MailService;
+import com.litesoftwares.coingecko.service.MailService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +55,7 @@ public class InitTest {
     public void initHighPrice() throws InterruptedException {
         Set<String> collect = coinPriceOrderRepository.findAll().parallelStream().map(i -> i.getCoinId()).collect(Collectors.toSet());
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
-        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 600, 3, false, "");
+        List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 600, 1, false, "");
 //        List<CoinList> coinList = client.getCoinList();
         System.out.println("总条数； " + coinList.size());
         int size = coinList.size() / threadNum;
@@ -71,7 +71,7 @@ public class InitTest {
     }
 
     @Test
-    public void initHighPrice2() {
+    public void checkDatabaseData() {
         List<CoinPriceOrder> all = coinPriceOrderRepository.findAll();
         CoinGeckoApiClient client = new CoinGeckoApiClientImpl();
         List<CoinMarkets> coinList = client.getCoinMarkets(Currency.USD, null, null, 200, 1, false, "");

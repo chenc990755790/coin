@@ -1,4 +1,4 @@
-package com.litesoftwares.coingecko.task;
+package com.litesoftwares.coingecko.service;
 
 import com.litesoftwares.coingecko.domain.PriceOrder;
 import lombok.extern.slf4j.Slf4j;
